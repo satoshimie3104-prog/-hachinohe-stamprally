@@ -3,65 +3,400 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>八戸スタンプラリー</title>
+
 <style>
+*{
+  box-sizing:border-box;
+}
+
 body{
-font-family:sans-serif;
-background:#f5f5f5;
-margin:0;
-padding:20px;
-text-align:center;
+  margin:0;
+  font-family:
+  "Hiragino Kaku Gothic ProN",
+  "Yu Gothic",
+  sans-serif;
+  background:#f4f8fb;
+  color:#333;
 }
-h1{
-color:#2196f3;
+
+header{
+  background:linear-gradient(135deg,#0066cc,#00aaff);
+  color:white;
+  text-align:center;
+  padding:30px 15px;
 }
+
+header h1{
+  margin:0;
+  font-size:28px;
+}
+
+header p{
+  margin-top:10px;
+}
+
+.container{
+  max-width:600px;
+  margin:auto;
+  padding:20px;
+}
+
 .card{
-background:white;
-border-radius:15px;
-padding:15px;
-margin:15px auto;
-max-width:500px;
-box-shadow:0 0 10px rgba(0,0,0,.2);
+  background:white;
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 5px 15px rgba(0,0,0,.1);
 }
+
+.progress-area{
+  text-align:center;
+}
+
+.progress-bar{
+  width:100%;
+  height:25px;
+  background:#ddd;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress{
+  height:100%;
+  width:0%;
+  background:#00b894;
+  transition:.4s;
+}
+
+.spot{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px;
+  border-bottom:1px solid #eee;
+}
+
+.spot:last-child{
+  border-bottom:none;
+}
+
+.stamp{
+  font-size:30px;
+}
+
 button{
-padding:12px 25px;
-font-size:18px;
-border:none;
-border-radius:10px;
-background:#2196f3;
-color:white;
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:12px;
+  background:#0066cc;
+  color:white;
+  font-size:18px;
+  cursor:pointer;
 }
+
+button:hover{
+  opacity:.8;
+}
+
+#reader{
+  width:100%;
+}
+
+.complete{
+  display:none;
+  text-align:center;
+}
+
+.complete h2{
+  color:#00a86b;
+  font-size:32px;
+}
+
+.trophy{
+  font-size:70px;
+}
+
+footer{
+  text-align:center;
+  padding:20px;
+  color:#777;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<h1>🎉 八戸スタンプラリー 🎉</h1>
+<header>
+<h1>🏮 八戸スタンプラリー</h1>
+<p>八戸の魅力を巡ってスタンプを集めよう！</p>
+</header>
 
-<div class="card">
-<h2>チェックポイント</h2>
 
-<p>🎨 八戸市美術館</p>
-<p>🍓 フルーツパーラー ODAWARA</p>
-<p>🥙 チャパティ</p>
-<p>🍡 戸田菓子舗</p>
+<div class="container">
 
-<h3>達成率</h3>
-<h2>0 / 4</h2>
 
-<button>スタンプラリー開始！</button>
+<div class="card progress-area">
+
+<h2>進捗</h2>
+
+<div class="progress-bar">
+<div class="progress" id="progress"></div>
+</div>
+
+<p id="count">0 / 4 スタンプ</p>
 
 </div>
 
-</body>
-</html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>八戸スタンプラリー</title>
-</head>
-<body>
-<h1>🎉 八戸スタンプラリー</h1>
-<p>サイト作成中です！</p>
+
+
+<div class="card">
+
+<h2>📍 スポット一覧</h2>
+
+<div id="spots"></div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>📷 QRコード読み取り</h2>
+
+<div id="reader"></div>
+
+<p>
+各スポットのQRコードを読み込むと
+スタンプを獲得できます。
+</p>
+
+</div>
+
+
+
+<div class="card complete" id="complete">
+
+<div class="trophy">🎉</div>
+
+<h2>コンプリート！</h2>
+
+<p>
+八戸スタンプラリー達成おめでとうございます！
+</p>
+
+<p>
+素敵な八戸巡りになりました✨
+</p>
+
+</div>
+
+
+<button onclick="resetStamp()">
+スタンプをリセット
+</button>
+
+
+</div>
+
+
+<footer>
+© 八戸スタンプラリー
+</footer>
+
+
+<!-- QRコード読み取りライブラリ -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+
+const spots = [
+  {
+    id:"museum",
+    name:"八戸市美術館"
+  },
+  {
+    id:"odawara",
+    name:"フルーツパーラーODAWARA"
+  },
+  {
+    id:"chapati",
+    name:"チャパティ"
+  },
+  {
+    id:"toda",
+    name:"戸田菓子舗"
+  }
+];
+
+
+let stamps = JSON.parse(
+  localStorage.getItem("hachinohe_stamps")
+) || [];
+
+
+// スポット表示
+function showSpots(){
+
+  const area=document.getElementById("spots");
+
+  area.innerHTML="";
+
+  spots.forEach(s=>{
+
+    const done=stamps.includes(s.id);
+
+    area.innerHTML += `
+    <div class="spot">
+
+      <div>
+      <b>${s.name}</b><br>
+      ${done ? "✅ 獲得済み" : "⭕ 未獲得"}
+      </div>
+
+      <div class="stamp">
+      ${done ? "📍" : "🔒"}
+      </div>
+
+    </div>
+    `;
+
+  });
+
+}
+
+
+//進捗更新
+function updateProgress(){
+
+  const count=document.getElementById("count");
+  const bar=document.getElementById("progress");
+
+  let num=stamps.length;
+
+  count.innerHTML =
+  `${num} / ${spots.length} スタンプ`;
+
+  bar.style.width =
+  (num/spots.length*100)+"%";
+
+
+  if(num===spots.length){
+
+    document.getElementById("complete")
+    .style.display="block";
+
+  }
+
+}
+
+
+
+//スタンプ追加
+function addStamp(id){
+
+  if(!spots.find(s=>s.id===id)){
+    return;
+  }
+
+
+  if(!stamps.includes(id)){
+
+    stamps.push(id);
+
+    localStorage.setItem(
+      "hachinohe_stamps",
+      JSON.stringify(stamps)
+    );
+
+    alert("🎉 スタンプを獲得しました！");
+
+  }else{
+
+    alert("このスタンプは取得済みです");
+
+  }
+
+
+  showSpots();
+  updateProgress();
+
+}
+
+
+
+//QR読み取り開始
+
+function startQR(){
+
+const scanner =
+new Html5QrcodeScanner(
+"reader",
+{
+fps:10,
+qrbox:250
+}
+);
+
+
+scanner.render(
+
+(decodedText)=>{
+
+
+console.log(decodedText);
+
+
+// QRの文字で判定
+addStamp(decodedText);
+
+
+},
+
+(error)=>{
+}
+
+);
+
+
+}
+
+
+
+//リセット
+
+function resetStamp(){
+
+if(confirm("スタンプを全部消しますか？")){
+
+stamps=[];
+
+localStorage.removeItem(
+"hachinohe_stamps"
+);
+
+showSpots();
+updateProgress();
+
+}
+
+}
+
+
+
+//起動
+
+showSpots();
+
+updateProgress();
+
+startQR();
+
+
+</script>
+
 </body>
 </html>
