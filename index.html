@@ -390,8 +390,17 @@ updateProgress();
 //起動
 
 showSpots();
-
 updateProgress();
+
+const params = new URLSearchParams(window.location.search);
+const spot = params.get("spot");
+
+if(spot){
+    addStamp(spot);
+
+    // URLを元に戻す
+    history.replaceState({}, "", window.location.pathname);
+}
 
 startQR();
 
